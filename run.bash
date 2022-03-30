@@ -1,4 +1,4 @@
 #!/bin/bash
 
-ocamlc -o build/main main.ml
+ocamlfind ocamlc main.ml -o build/main -linkpkg -package graphics
 ./build/main
