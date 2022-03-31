@@ -62,6 +62,7 @@ let rec auto_to_graph_l list size =
     | [] -> print_string("");
 ;;
 
+(* Prend un automate et la taille du coté des cellules et dessine dans le graph *)
 let auto_to_graph auto sizeCell =
     match auto with
     | Automate(_, list)-> auto_to_graph_l list sizeCell
@@ -91,7 +92,7 @@ let auto_change_state auto x y =
     | Automate(v, cell_l_l) -> Automate(v, (auto_change_state_l cell_l_l x y))
 ;;
 
-(* ------------------ Fonctions permettant le changement d'état de certaines cellules, selon une liste de coordonées (sers pour l'état initial et le passage d'un état au suivant ) ------------------ *)
+(* ------------------ Fonctions permettant le changement d'état de certaines cellules, selon une liste de coordonées ------------------ *)
 
 let get_x h = 
     match h with
@@ -212,9 +213,10 @@ let rec next_state_rec auto l_changement n m x y  =
 let next_state_list auto n m =
     next_state_rec auto [] n m 0 0
 ;;
-
+(* on appelle cette fonction *)
 let next_state auto n m = 
     auto_etat_initiale auto (next_state_list auto n m)
+    (* On utilise la fonction qui prend une liste de coordonnées et change les états correspondant *)
 ;;
 
 
@@ -222,12 +224,11 @@ let next_state auto n m =
 
 let nbColumn = 10;;
 let nbLine = 10;;
+let tailleEcran = 1000;;
+let tailleCellulle = tailleEcran/nbColumn;;
 
 let voisin = Voisinage [(-1,-1); (-1,0); (-1,1); (0,-1); (0,1); (1,-1); (1, 0); (1, 1)];;
-
 let auto = Automate(voisin , create_automate nbColumn nbLine);;
-
-let tailleEcran = 1000;;
 
 let string_graph = " " ^ string_of_int(tailleEcran)^"x"^string_of_int(tailleEcran);; 
 
@@ -235,7 +236,7 @@ open_graph string_graph ;;
 
 let etat_initiale = [(1,1); (2,2);(1,2);(0,9);];;
 
-let tailleCellulle = tailleEcran/nbColumn;;
+ignore (Graphics.read_key ());;
 
 auto_to_graph auto tailleCellulle;;
 
