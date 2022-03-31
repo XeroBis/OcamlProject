@@ -217,7 +217,7 @@ let rec next_state_rec auto l_changement n m x y  =
 let next_state_list auto n m =
     next_state_rec auto [] n m 0 0
 ;;
-(* Cette fonction renvoie un automate qui a passé une génération *)
+(* Cette fonction renvoie un automate qui a passé une génération on appelle cette fonction *)
 let next_state auto n m = 
     auto_etat_initiale auto (next_state_list auto n m)
     (* On utilise la fonction qui prend une liste de coordonnées et change les états correspondant *)
