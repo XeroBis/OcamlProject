@@ -1,3 +1,10 @@
+(* 
+BIGNON Alan 685L E197700R
+Tasyurek Ekin 685K Erasmus
+
+Projet Prgrammation Fonctionnelle 
+Sujet 2 : Automate Cellulaire
+*)
 open Graphics;; (* pour l'affichage graphique *)
 open Unix;;
 (* ------------------ Les types de bases pour notre automate ------------------ *)
@@ -25,23 +32,6 @@ let rec create_automate n m =
         create_column_auto n m
     else
         (create_column_auto n m)@create_automate n (m-1)
-;;
-
-(* ------------------ Fonctions qui permettent l'affichage de l'automate dans le terminal ------------------ *)
-
-let rec print_auto_list (list_cell: cellule list) =
-    match list_cell with
-    | [] -> print_string("")
-    | Cellule(state, x, y)::l -> print_auto_list l;
-                                    begin match state with
-                                    | Dead -> print_string("D, x=" ^ string_of_int(x) ^ ", y=" ^ string_of_int(y)) ; print_newline();
-                                    | Alive -> print_string("A"); 
-                                    end                              
-;;
-
-let print_auto auto =
-    match auto with
-    | Automate(_,list) -> print_auto_list list;
 ;;
 
 (* ------------------ Fonctions permettant l'affichage graphique de l'automate ------------------ *)
@@ -187,7 +177,6 @@ let rec get_nb_voisin_alive auto x y n m =
     | Automate(v, l) -> get_nb_voisin_alive_l l (get_liste_voisin v) x y n m
 ;;
 
-
 (* ------------------ Fonctions permettant de passer d'un état d'automate au suivant ------------------ *)
 
 let next_state_in auto x y n m =
@@ -216,7 +205,7 @@ let next_state auto n m =
     (* On utilise la fonction qui prend une liste de coordonnées et change les états correspondant *)
 ;;
 
-(* ------------------ Fonctions gérant le changement d'état d'un automate ------------------ *)
+(* ------------------ Fonctions gérant le changement d'état graphique d'un automate ------------------ *)
 
 let rec boucle_auto_state auto tailleCellule nbColumn nbLine =
     let choice = Graphics.read_key () in
@@ -252,7 +241,7 @@ let start_auto_glider_gun nbColumn nbLine tailleEcran =
     boucle_auto_state auto tailleCellule nbColumn nbLine ;
 ;;
 
-let start_graph_basique nbColumn nbLine tailleEcran =
+let start_auto_basique nbColumn nbLine tailleEcran =
     let tailleCellule = tailleEcran/nbColumn in
     let voisin = Voisinage [(-1,-1); (-1,0); (-1,1); (0,-1); (0,1); (1,-1); (1, 0); (1, 1)] in
     let auto = Automate(voisin , create_automate nbColumn nbLine) in
@@ -295,11 +284,11 @@ let start_graph =
     let choice = Graphics.read_key () in 
     begin match choice with
     | 'a' -> start_auto_glider_gun nbColumn nbLine tailleEcran
-    | 'b' -> start_graph_basique nbColumn nbLine tailleEcran
-    | _ -> start_graph_basique nbColumn nbLine tailleEcran
+    | 'b' -> start_auto_basique nbColumn nbLine tailleEcran
+    | _ -> start_auto_basique nbColumn nbLine tailleEcran
     end
 ;;
 
-(* ------------------ fonction gérant l'automate ainsi que le start-up de la partie graphique ------------------ *)
+(* ------------------ start-up du projet ------------------ *)
 
 start_graph ;;
