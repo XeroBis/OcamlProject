@@ -111,22 +111,25 @@ let rec auto_etat_initiale auto l =
 
 (* ------------------ Fonctions permettant de récupérer l'état d'une cellule ------------------ *)
 
+(* Fonction qui test si une cellule est en coordonées (x,y) *)
 let is_there cell x y =
     match cell with
     | Cellule(state, a, b) -> if a = x && b=y then true else false
 ;;
 
+(* Fontion qui récupère l'état d'une cellule *)
 let get_state cell =
     match cell with
     | Cellule (state, _,_) -> state
 ;;
 
+(* Fonction qui récupère l'état d'une cellule en coordonées (x,y) *)
 let rec get_state_l l x y =
     match l with
     | h::t -> if is_there h x y then get_state h else get_state_l t x y 
     | _ -> failwith "erreur x et y pas dans le tableau"
 ;;
-
+(* Fonction qui prend un automate et renvoie l'état de la cellule se situant en coordonées (x,y) *)
 let get_state auto x y =
     match auto with
     | Automate(v, l) -> get_state_l l x y 
@@ -143,6 +146,7 @@ let get_y cell =
     | Cellule (_,_,y) -> y
 ;;
 
+(* Fonction qui test si une cellule est vivante et qui renvoie un boolean, true si la cellule est vivante, false sinon *)
 let isAlive cell = 
     match cell with
     | Cellule(state, _,_ )-> match state with
@@ -150,6 +154,7 @@ let isAlive cell =
                             | Alive -> true
 ;;
 
+(* fonction qui teste si une cellule est voisine de la cellule située en (x,y), si elle est voisine et vivante on renvoie 1 sinon 0 *)
 let rec is_voisin cell voisin x y n m =
     if not(isAlive cell)
     then 
@@ -169,18 +174,19 @@ let rec is_voisin cell voisin x y n m =
                         end
         | _ -> 0
 ;;
-
+(* Cette fonction permet d'avoir le nombre de voisin vivant d'une cellule *)
 let rec get_nb_voisin_alive_l l l_voisin x y n m=
     match l with 
     | h::t -> is_voisin h l_voisin x y n m + get_nb_voisin_alive_l t l_voisin x y n m
     | [] -> 0 
 ;;
 
+(* Cette fonction permet de récupérer la liste des voisin *)
 let get_liste_voisin voisin = 
     match voisin with
     | Voisinage(l) -> l
 ;;
-
+(* Cette fonction permet de récupérer le nombre de cellule vivante voisine de la cellule situé en (x,y), elle appel get_nb_voisin_alive_l  *)
 let rec get_nb_voisin_alive auto x y n m =
     match auto with
     | Automate(v, l) -> get_nb_voisin_alive_l l (get_liste_voisin v) x y n m
@@ -188,6 +194,7 @@ let rec get_nb_voisin_alive auto x y n m =
 
 (* ------------------ Fonctions permettant de passer d'un état d'automate au suivant ------------------ *)
 
+(* détermine le nouvel état d'une cellule selon son nombre de cellule vivante voisine *)
 let next_state_in auto x y n m =
     let state = get_state auto x y in
     let nbVoisinAlive = get_nb_voisin_alive auto x y n m in
@@ -196,6 +203,7 @@ let next_state_in auto x y n m =
     | Alive -> if nbVoisinAlive = 2 || nbVoisinAlive = 3 then [] else [(x, y);]
 ;;
 
+(* Fonction permettant de récupérer la liste de coordonnées des cellules qui doivent changer d'état *)
 let rec next_state_rec auto l_changement n m x y  =
     if n-1=x && m-1 = y
     then
@@ -205,10 +213,11 @@ let rec next_state_rec auto l_changement n m x y  =
         | Automate(voisin, l) -> next_state_rec auto (l_changement@(next_state_in auto x y n m)) n m (if x = n-1 then 0 else x+1) (if x=n-1 then y+1 else y)
 ;;
 
+(* Fonction secondaire *)
 let next_state_list auto n m =
     next_state_rec auto [] n m 0 0
 ;;
-(* on appelle cette fonction *)
+(* Cette fonction renvoie un automate qui a passé une génération *)
 let next_state auto n m = 
     auto_etat_initiale auto (next_state_list auto n m)
     (* On utilise la fonction qui prend une liste de coordonnées et change les états correspondant *)
@@ -216,37 +225,40 @@ let next_state auto n m =
 
 (* ------------------ Fonctions gérant le changement d'état graphique d'un automate ------------------ *)
 
-
 (* Cette fonction gère deux évenements, le premier étant le passage a l'état suivant, l'autre étant
 le changement d'état d'une cellule par l'utilisateur *)
 let rec boucle_auto_state auto tailleCellule nbColumn nbLine =
     let event = wait_next_event[Graphics.Button_down; Graphics.Key_pressed] in
     if event.keypressed then
         match event.Graphics.key with
-        | 'e' -> ()
+        | 'e' -> () (* si on appuie sur e on quitte le programme *)
         | _ -> begin 
-            ignore clear_graph;
             let nextAutoKey = next_state auto nbColumn nbLine in
+            ignore clear_graph;
             auto_to_graph nextAutoKey tailleCellule;
             boucle_auto_state nextAutoKey tailleCellule nbColumn nbLine;
             end
     else if event.button then
+        (* on récupère les 2 coordonées *)
         let subx = float_of_int(event.mouse_x) in
         let x = (subx/.(float_of_int(tailleCellule)*.float_of_int(nbColumn)))*.float_of_int(nbColumn) in 
 
         let suby = float_of_int(event.mouse_y) in
-        let y = (suby/.(float_of_int(tailleCellule)*.float_of_int(nbColumn)))*.float_of_int(nbColumn) in 
+        let y = (suby/.(float_of_int(tailleCellule)*.float_of_int(nbColumn)))*.float_of_int(nbColumn) in
+
         let coord = [int_of_float(x) , int_of_float(y)] in
-        ignore clear_graph;
-        print_int(event.mouse_x);
-        print_newline();
+
+        (* on change l'état de la cellule citué à ces coordonnées *)
         let nextAutoButton = auto_etat_initiale auto coord in
+        (* on redessine le graphique *)
+        ignore clear_graph;
         auto_to_graph nextAutoButton tailleCellule;
         boucle_auto_state nextAutoButton tailleCellule nbColumn nbLine;
 ;;
 
 (* ------------------ Fonctions implémentant différents états initiaux du jeu de la vie ------------------ *)
 
+(* fonction qui lance un automate avec un glider gun présent *)
 let start_auto_glider_gun nbColumn nbLine tailleEcran =
     let tailleCellule = tailleEcran/nbColumn in
     let voisin = Voisinage [(-1,-1); (-1,0); (-1,1); (0,-1); (0,1); (1,-1); (1, 0); (1, 1)] in
@@ -264,9 +276,11 @@ let start_auto_glider_gun nbColumn nbLine tailleEcran =
 
     auto_to_graph auto tailleCellule;
 
+    (* on boucle à l'infini avec cette appel *)
     boucle_auto_state auto tailleCellule nbColumn nbLine ;
 ;;
 
+(* fonction qui lance un automate qui as quelques structures *)
 let start_auto_basique nbColumn nbLine tailleEcran =
     let tailleCellule = tailleEcran/nbColumn in
     let voisin = Voisinage [(-1,-1); (-1,0); (-1,1); (0,-1); (0,1); (1,-1); (1, 0); (1, 1)] in
@@ -279,24 +293,18 @@ let start_auto_basique nbColumn nbLine tailleEcran =
 
     let auto = auto_etat_initiale auto etat_initiale in
     Graphics.set_window_title ("Press any key to go to next state and E to exit");
-
     auto_to_graph auto tailleCellule;
+
+    (* on boucle à l'infini avec cette appel *)
     boucle_auto_state auto tailleCellule nbColumn nbLine ;
 ;;
 
 (* ------------------ Fonction gérant le démarage de l'automate ------------------ *)
 
+(* Fonction servant a initialiser toute la partie graphique du projet *)
 let init_graph nbColumn nbLine tailleEcran =
     let string_graph = " " ^ string_of_int(tailleEcran)^"x"^string_of_int(tailleEcran) in 
     open_graph string_graph ;
-;;
-
-let start_graph =
-    let nbColumn = 51 in
-    let nbLine = 51 in
-    let tailleEcran = 1500 in
-    init_graph nbColumn nbLine tailleEcran;
-    ignore clear_graph;
     Graphics.moveto 450 1300;
     Graphics.set_font "-*-fixed-medium-r-semicondensed--100-*-*-*-*-*-iso8859-1";
     Graphics.draw_string ("GAME OF LIFE");
@@ -306,6 +314,14 @@ let start_graph =
 
     Graphics.moveto 150 900;
     Graphics.draw_string ("press B for a normal grid !");
+;;
+
+let start_graph =
+    let nbColumn = 51 in
+    let nbLine = 51 in
+    let tailleEcran = 1500 in
+    init_graph nbColumn nbLine tailleEcran;
+    
 
     let choice = Graphics.read_key () in 
     begin match choice with
