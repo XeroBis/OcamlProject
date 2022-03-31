@@ -4,6 +4,8 @@ Tasyurek Ekin 685K Erasmus
 
 Projet Prgrammation Fonctionnelle 
 Sujet 2 : Automate Cellulaire
+pour lancer : ocamlfind ocamlc main.ml -o main -linkpkg -package graphics -package unix
+puis ./main
 *)
 open Graphics;; (* pour l'affichage graphique *)
 open Unix;;
@@ -207,16 +209,33 @@ let next_state auto n m =
 
 (* ------------------ Fonctions gérant le changement d'état graphique d'un automate ------------------ *)
 
+
+(* Cette fonction gère deux évenements, le premier étant le passage a l'état suivant, l'autre étant
+le changement d'état d'une cellule par l'utilisateur *)
 let rec boucle_auto_state auto tailleCellule nbColumn nbLine =
-    let choice = Graphics.read_key () in
-    match choice with
-    | 'e' -> ()
-    | _ -> begin 
+    let event = wait_next_event[Graphics.Button_down; Graphics.Key_pressed] in
+    if event.keypressed then
+        match event.Graphics.key with
+        | 'e' -> ()
+        | _ -> begin 
+            ignore clear_graph;
+            let nextAutoKey = next_state auto nbColumn nbLine in
+            auto_to_graph nextAutoKey tailleCellule;
+            boucle_auto_state nextAutoKey tailleCellule nbColumn nbLine;
+            end
+    else if event.button then
+        let subx = float_of_int(event.mouse_x) in
+        let x = (subx/.(float_of_int(tailleCellule)*.float_of_int(nbColumn)))*.float_of_int(nbColumn) in 
+
+        let suby = float_of_int(event.mouse_y) in
+        let y = (suby/.(float_of_int(tailleCellule)*.float_of_int(nbColumn)))*.float_of_int(nbColumn) in 
+        let coord = [int_of_float(x) , int_of_float(y)] in
         ignore clear_graph;
-        let nextAuto = next_state auto nbColumn nbLine in
-        auto_to_graph nextAuto tailleCellule;
-        boucle_auto_state nextAuto tailleCellule nbColumn nbLine;
-        end
+        print_int(event.mouse_x);
+        print_newline();
+        let nextAutoButton = auto_etat_initiale auto coord in
+        auto_to_graph nextAutoButton tailleCellule;
+        boucle_auto_state nextAutoButton tailleCellule nbColumn nbLine;
 ;;
 
 (* ------------------ Fonctions implémentant différents états initiaux du jeu de la vie ------------------ *)
