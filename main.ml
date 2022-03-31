@@ -1,5 +1,5 @@
 open Graphics;; (* pour l'affichage graphique *)
-
+open Unix;;
 (* ------------------ Les types de bases pour notre automate ------------------ *)
 type state = Alive | Dead;;
 
@@ -7,7 +7,7 @@ type cellule = Cellule of state * int * int ;;
 
 type voisinage = Voisinage of (int * int) list;;
 
-type automate = Automate of voisinage * (cellule list );;
+type automate = Automate of voisinage * (cellule list);;
 
 
 (* ------------------ Fonctions permettant la création d'un automate avec toutes ces cellules mortes ------------------ *)
@@ -152,7 +152,6 @@ let isAlive cell =
 ;;
 
 let rec is_voisin cell voisin x y n m =
-
     if not(isAlive cell)
     then 
         0
@@ -183,7 +182,7 @@ let get_liste_voisin voisin =
     | Voisinage(l) -> l
 ;;
 
-let rec get_nb_voisin_alive auto x y n m=
+let rec get_nb_voisin_alive auto x y n m =
     match auto with
     | Automate(v, l) -> get_nb_voisin_alive_l l (get_liste_voisin v) x y n m
 ;;
@@ -194,8 +193,6 @@ let rec get_nb_voisin_alive auto x y n m=
 let next_state_in auto x y n m =
     let state = get_state auto x y in
     let nbVoisinAlive = get_nb_voisin_alive auto x y n m in
-    print_string("nbVoisinAlive : "^string_of_int(nbVoisinAlive) ^ ", x ="^ string_of_int(x)^", y= "^string_of_int(y));
-    print_newline();
     match state with 
     | Dead -> if nbVoisinAlive = 3 then [(x,y)] else []
     | Alive -> if nbVoisinAlive = 2 || nbVoisinAlive = 3 then [] else [(x, y);]
@@ -219,37 +216,90 @@ let next_state auto n m =
     (* On utilise la fonction qui prend une liste de coordonnées et change les états correspondant *)
 ;;
 
+(* ------------------ Fonctions gérant le changement d'état d'un automate ------------------ *)
 
-(* ------------------ fonction gérant l'automate ainsi que le start-up de la partie graphique ------------------*)
+let rec boucle_auto_state auto tailleCellule nbColumn nbLine =
+    let choice = Graphics.read_key () in
+    match choice with
+    | 'e' -> ()
+    | _ -> begin 
+        ignore clear_graph;
+        let nextAuto = next_state auto nbColumn nbLine in
+        auto_to_graph nextAuto tailleCellule;
+        boucle_auto_state nextAuto tailleCellule nbColumn nbLine;
+        end
+;;
 
-let nbColumn = 10;;
-let nbLine = 10;;
-let tailleEcran = 1000;;
-let tailleCellulle = tailleEcran/nbColumn;;
+(* ------------------ Fonctions implémentant différents états initiaux du jeu de la vie ------------------ *)
 
-let voisin = Voisinage [(-1,-1); (-1,0); (-1,1); (0,-1); (0,1); (1,-1); (1, 0); (1, 1)];;
-let auto = Automate(voisin , create_automate nbColumn nbLine);;
+let start_auto_glider_gun nbColumn nbLine tailleEcran =
+    let tailleCellule = tailleEcran/nbColumn in
+    let voisin = Voisinage [(-1,-1); (-1,0); (-1,1); (0,-1); (0,1); (1,-1); (1, 0); (1, 1)] in
+    let auto = Automate(voisin , create_automate nbColumn nbLine) in
+    let etat_initiale = [(2,45); (2,44); (3,45); (3,44); 
+        (12,45);(12,44);(12,43);(13,46);(14,47);(15,47); (13,42); (14,41);(15,41); 
+        (16,44); (17,46);(18,45);(18,44);(18,43);(19,44);(17,42);
+        (22,47);(22,46);(22,45);(23,47);(23,46);(23,45);(24,48);(24,44);
+        (26,49);(26,48);(26,44);(26,43);
+        (36,47);(36,46);(37,47);(37,46);] in
 
-let string_graph = " " ^ string_of_int(tailleEcran)^"x"^string_of_int(tailleEcran);; 
+    Graphics.set_window_title ("Press any key to go to next state and E to exit");
 
-open_graph string_graph ;;
+    let auto = auto_etat_initiale auto etat_initiale in
 
-let etat_initiale = [(1,1); (2,2);(1,2);(0,9);];;
+    auto_to_graph auto tailleCellule;
 
-ignore (Graphics.read_key ());;
+    boucle_auto_state auto tailleCellule nbColumn nbLine ;
+;;
 
-auto_to_graph auto tailleCellulle;;
+let start_graph_basique nbColumn nbLine tailleEcran =
+    let tailleCellule = tailleEcran/nbColumn in
+    let voisin = Voisinage [(-1,-1); (-1,0); (-1,1); (0,-1); (0,1); (1,-1); (1, 0); (1, 1)] in
+    let auto = Automate(voisin , create_automate nbColumn nbLine) in
 
-clear_graph;;
+    let etat_initiale = [(2,48);(2,47);(3,46);(5,48);(4,49);(5,47);
+                        (10,48);(11,49);(12,49);(13,49);(14,49);(14,48);(14,47);(13,46);(10,46);
+                        (11,43);(12,42);(12,41);(12,40);(11,39);(10,38);
+                        (10,33);(11,34);(12,34);(13,34);(14,34);(14,33);(14,32);(13,31);(10,31);] in
 
-let auto = auto_etat_initiale auto etat_initiale;;
+    let auto = auto_etat_initiale auto etat_initiale in
+    Graphics.set_window_title ("Press any key to go to next state and E to exit");
 
-let test = if get_state auto 2 2 = Alive then "oui" else "non";;
+    auto_to_graph auto tailleCellule;
+    boucle_auto_state auto tailleCellule nbColumn nbLine ;
+;;
 
-print_string(test);;
+(* ------------------ Fonction gérant le démarage de l'automate ------------------ *)
 
-let auto = next_state auto nbColumn nbLine;;
+let init_graph nbColumn nbLine tailleEcran =
+    let string_graph = " " ^ string_of_int(tailleEcran)^"x"^string_of_int(tailleEcran) in 
+    open_graph string_graph ;
+;;
 
-auto_to_graph auto tailleCellulle;;
+let start_graph =
+    let nbColumn = 51 in
+    let nbLine = 51 in
+    let tailleEcran = 1500 in
+    init_graph nbColumn nbLine tailleEcran;
+    ignore clear_graph;
+    Graphics.moveto 450 1300;
+    Graphics.set_font "-*-fixed-medium-r-semicondensed--100-*-*-*-*-*-iso8859-1";
+    Graphics.draw_string ("GAME OF LIFE");
 
-ignore (Graphics.read_key ())
+    Graphics.moveto 150 1100;
+    Graphics.draw_string ("press A for glider gun !");
+
+    Graphics.moveto 150 900;
+    Graphics.draw_string ("press B for a normal grid !");
+
+    let choice = Graphics.read_key () in 
+    begin match choice with
+    | 'a' -> start_auto_glider_gun nbColumn nbLine tailleEcran
+    | 'b' -> start_graph_basique nbColumn nbLine tailleEcran
+    | _ -> start_graph_basique nbColumn nbLine tailleEcran
+    end
+;;
+
+(* ------------------ fonction gérant l'automate ainsi que le start-up de la partie graphique ------------------ *)
+
+start_graph ;;
