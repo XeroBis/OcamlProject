@@ -20,6 +20,7 @@ type automate = Automate of voisinage * (cellule list);;
 
 
 (* ------------------ Fonctions permettant la création d'un automate avec toutes ces cellules mortes ------------------ *)
+(* Cette fonction crée une liste de cellulue de même coordonées y *)
 let rec create_column_auto i m = 
     if i = 0
     then
@@ -28,6 +29,7 @@ let rec create_column_auto i m =
         Cellule (Dead, i, m)::create_column_auto (i-1) m
 ;;
 
+(* Cette fonction crée une liste de cellule avec des coordonnées allant de (0,0) à (n,m) *)
 let rec create_automate n m =
     if m = 0
     then
@@ -37,17 +39,20 @@ let rec create_automate n m =
 ;;
 
 (* ------------------ Fonctions permettant l'affichage graphique de l'automate ------------------ *)
+(* Cette fonction change la couleur courante du graphique, cela nous permet de dessiner des carrés noir pour les vivant et blanc pour les morts *)
 let change_color state = 
     match state with
-    | Dead -> Graphics.set_color red
+    | Dead -> Graphics.set_color white
     | Alive -> Graphics.set_color black
 ;;
 
+(* Cette fonction prend une cellule et la taille de la cellule dans le graph et change la couleur courante puis dessine le carré correspondant à la cellule *)
 let cellule_to_graph cell size = 
     match cell with
     | Cellule(state, x, y) -> change_color state; Graphics.fill_rect (x*size) (y*size) size size;
 ;;
 
+(* Cette fonction va, pour chaque cellule dans la liste, appeller la fonction cellule_to_graph avec cette cellule *)
 let rec auto_to_graph_l list size =
     match list with
     | h::l -> cellule_to_graph h size; auto_to_graph_l l size;
@@ -61,13 +66,15 @@ let auto_to_graph auto sizeCell =
 ;;
 
 (* ------------------ Fonctions permettant le changement d'état d'une cellule ------------------ *)
-
+(* Cette fonction prend un état et renvoie l'opposé *)
 let get_opposite_state state =
     match state with
     | Dead -> Alive
     | Alive -> Dead
 ;;
 
+(* cette fonction prend une cellule et des coordonées
+    si la cellule se trouve au coordonnées données alors on change son état sinon on ne fait rien *)
 let sameCoord cell x y = 
     match cell with
     | Cellule(state, a, b) -> if a = x && b = y then Cellule(get_opposite_state state, a, b) else cell 
@@ -78,7 +85,7 @@ let rec auto_change_state_l l x y =
     | h::t -> sameCoord h x y::auto_change_state_l t x y
     | [] -> []
 ;;
-
+(* Cette fonction permet de changer l'état d'une cellule situé en coordonnées (x,y) *)
 let auto_change_state auto x y = 
     match auto with
     | Automate(v, cell_l_l) -> Automate(v, (auto_change_state_l cell_l_l x y))
@@ -309,5 +316,4 @@ let start_graph =
 ;;
 
 (* ------------------ start-up du projet ------------------ *)
-
 start_graph ;;
