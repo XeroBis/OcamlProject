@@ -4,7 +4,7 @@ Tasyurek Ekin 685K Erasmus
 
 Projet Prgrammation Fonctionnelle 
 Sujet 2 : Automate Cellulaire
-pour lancer : ocamlfind ocamlc main.ml -o main -linkpkg -package graphics -package unix
+pour lancer : ocamlfind ocamlc main.ml -o main -linkpkg -package graphics
 puis ./main
 *)
 open Graphics;; (* pour l'affichage graphique *)
