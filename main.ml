@@ -8,7 +8,6 @@ pour lancer : ocamlfind ocamlc main.ml -o main -linkpkg -package graphics -packa
 puis ./main
 *)
 open Graphics;; (* pour l'affichage graphique *)
-open Unix;;
 (* ------------------ Les types de bases pour notre automate ------------------ *)
 type state = Alive | Dead;;
 
