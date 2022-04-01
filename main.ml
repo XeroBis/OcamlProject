@@ -266,7 +266,7 @@ let start_auto_glider_gun nbColumn nbLine tailleEcran =
         (26,49);(26,48);(26,44);(26,43);
         (36,47);(36,46);(37,47);(37,46);] in
 
-    Graphics.set_window_title ("Press any key to go to next state and E to exit");
+    set_window_title ("Press any key to go to next state and E to exit");
 
     let auto = auto_etat_initiale auto etat_initiale in
     clear_graph();
@@ -288,7 +288,7 @@ let start_auto_basique nbColumn nbLine tailleEcran =
                         (10,33);(11,34);(12,34);(13,34);(14,34);(14,33);(14,32);(13,31);(10,31);] in
 
     let auto = auto_etat_initiale auto etat_initiale in
-    Graphics.set_window_title ("Press any key to go to next state and E to exit");
+    set_window_title ("Press any key to go to next state and E to exit");
     clear_graph();
     auto_to_graph auto tailleCellule;
 
@@ -323,7 +323,7 @@ let start_auto_random nbColumn nbLine tailleEcran =
     let etat_initiale = get_etat_initiale_random nbColumn nbLine 0 0 in
 
     let auto = auto_etat_initiale auto etat_initiale in
-    Graphics.set_window_title ("Press any key to go to next state and E to exit");
+    set_window_title ("Press any key to go to next state and E to exit");
     clear_graph();
     auto_to_graph auto tailleCellule;
 
@@ -336,22 +336,22 @@ let start_auto_random nbColumn nbLine tailleEcran =
 let init_graph nbColumn nbLine tailleEcran =
     let string_graph = " " ^ string_of_int(tailleEcran)^"x"^string_of_int(tailleEcran) in 
     open_graph string_graph ;
-    Graphics.moveto 450 1300;
-    Graphics.set_font "-*-fixed-medium-r-semicondensed--100-*-*-*-*-*-iso8859-1";
-    Graphics.draw_string ("GAME OF LIFE");
+    moveto 450 1300;
+    set_font "-*-fixed-medium-r-semicondensed--100-*-*-*-*-*-iso8859-1";
+    draw_string ("GAME OF LIFE");
 
-    Graphics.moveto 100 1100;
-    Graphics.draw_string ("press A for glider gun !");
+    moveto 100 1100;
+    draw_string ("press A for glider gun !");
 
-    Graphics.moveto 100 900;
-    Graphics.draw_string ("press B for a normal grid !");
+    moveto 100 900;
+    draw_string ("press B for a normal grid !");
 
-    Graphics.moveto 100 700;
-    Graphics.draw_string ("press any key");
-    Graphics.moveto 100 600;
-    Graphics.draw_string ("for a random grid !");
-    Graphics.moveto 100 500;
-    Graphics.draw_string ("(may be slow to change state)");
+    moveto 100 700;
+    draw_string ("press any key");
+    moveto 100 600;
+    draw_string ("for a random grid !");
+    moveto 100 500;
+    draw_string ("(may be slow to change state)");
 ;;
 
 (* Fonction lancçant le projet, on initialise les varibales *)
@@ -361,7 +361,7 @@ let start_graph =
     let tailleEcran = 1500 in
     init_graph nbColumn nbLine tailleEcran;
     
-    let choice = Graphics.read_key () in 
+    let choice = read_key () in 
     begin match choice with
     | 'a' -> start_auto_glider_gun nbColumn nbLine tailleEcran
     | 'b' -> start_auto_basique nbColumn nbLine tailleEcran
