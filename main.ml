@@ -8,6 +8,7 @@ pour lancer : ocamlfind ocamlc main.ml -o main -linkpkg -package graphics
 puis ./main
 *)
 open Graphics;; (* pour l'affichage graphique *)
+Random.self_init();;
 (* ------------------ Les types de bases pour notre automate ------------------ *)
 type state = Alive | Dead;;
 
@@ -38,24 +39,26 @@ let rec create_automate n m =
 ;;
 
 (* ------------------ Fonctions permettant l'affichage graphique de l'automate ------------------ *)
-(* Cette fonction change la couleur courante du graphique, cela nous permet de dessiner des carrés noir pour les vivant et blanc pour les morts *)
-let change_color state = 
-    match state with
-    | Dead -> Graphics.set_color white
-    | Alive -> Graphics.set_color black
+
+(* Fonction qui test si une cellule est vivante et qui renvoie un boolean, true si la cellule est vivante, false sinon *)
+let isAlive cell = 
+    match cell with
+    | Cellule(state, _,_ )-> match state with
+                            | Dead -> false
+                            | Alive -> true
 ;;
 
 (* Cette fonction prend une cellule et la taille de la cellule dans le graph et change la couleur courante puis dessine le carré correspondant à la cellule *)
 let cellule_to_graph cell size = 
     match cell with
-    | Cellule(state, x, y) -> change_color state; Graphics.fill_rect (x*size) (y*size) size size;
+    | Cellule(state, x, y) -> if isAlive cell then fill_rect (x*size) (y*size) size size else draw_rect (x*size) (y*size) size size;
 ;;
 
 (* Cette fonction va, pour chaque cellule dans la liste, appeller la fonction cellule_to_graph avec cette cellule *)
 let rec auto_to_graph_l list size =
     match list with
     | h::l -> cellule_to_graph h size; auto_to_graph_l l size;
-    | [] -> print_string("");
+    | [] -> ();
 ;;
 
 (* Prend un automate et la taille du coté des cellules et dessine dans le graph *)
@@ -145,14 +148,6 @@ let get_y cell =
     | Cellule (_,_,y) -> y
 ;;
 
-(* Fonction qui test si une cellule est vivante et qui renvoie un boolean, true si la cellule est vivante, false sinon *)
-let isAlive cell = 
-    match cell with
-    | Cellule(state, _,_ )-> match state with
-                            | Dead -> false
-                            | Alive -> true
-;;
-
 (* fonction qui teste si une cellule est voisine de la cellule située en (x,y), si elle est voisine et vivante on renvoie 1 sinon 0 *)
 let rec is_voisin cell voisin x y n m =
     if not(isAlive cell)
@@ -227,13 +222,13 @@ let next_state auto n m =
 (* Cette fonction gère deux évenements, le premier étant le passage a l'état suivant, l'autre étant
 le changement d'état d'une cellule par l'utilisateur *)
 let rec boucle_auto_state auto tailleCellule nbColumn nbLine =
-    let event = wait_next_event[Graphics.Button_down; Graphics.Key_pressed] in
+    let event = wait_next_event[Button_down; Key_pressed] in
     if event.keypressed then
-        match event.Graphics.key with
+        match event.key with
         | 'e' -> () (* si on appuie sur e on quitte le programme *)
         | _ -> begin 
             let nextAutoKey = next_state auto nbColumn nbLine in
-            ignore clear_graph;
+            clear_graph();
             auto_to_graph nextAutoKey tailleCellule;
             boucle_auto_state nextAutoKey tailleCellule nbColumn nbLine;
             end
@@ -249,8 +244,8 @@ let rec boucle_auto_state auto tailleCellule nbColumn nbLine =
 
         (* on change l'état de la cellule citué à ces coordonnées *)
         let nextAutoButton = auto_etat_initiale auto coord in
-        (* on redessine le graphique *)
-        ignore clear_graph;
+        (* on efface tout et redessine le graphique *)
+        clear_graph();
         auto_to_graph nextAutoButton tailleCellule;
         boucle_auto_state nextAutoButton tailleCellule nbColumn nbLine;
 ;;
@@ -272,7 +267,7 @@ let start_auto_glider_gun nbColumn nbLine tailleEcran =
     Graphics.set_window_title ("Press any key to go to next state and E to exit");
 
     let auto = auto_etat_initiale auto etat_initiale in
-
+    clear_graph();
     auto_to_graph auto tailleCellule;
 
     (* on boucle à l'infini avec cette appel *)
@@ -292,12 +287,45 @@ let start_auto_basique nbColumn nbLine tailleEcran =
 
     let auto = auto_etat_initiale auto etat_initiale in
     Graphics.set_window_title ("Press any key to go to next state and E to exit");
+    clear_graph();
     auto_to_graph auto tailleCellule;
 
     (* on boucle à l'infini avec cette appel *)
     boucle_auto_state auto tailleCellule nbColumn nbLine ;
 ;;
 
+let rec get_etat_initiale_random n m i j = 
+    if i = n && j = m then
+        begin
+        if Random.int 2 = 1 then
+            [(n,m);]
+        else 
+            []
+        end
+    else
+        begin
+        if Random.int 2 = 1 then
+            [(i,j);]@(get_etat_initiale_random n m (if i = n then 0 else i+1) (if i = n then j+1 else j))
+        else
+            get_etat_initiale_random n m (if i = n then 0 else i+1) (if i = n then j+1 else j)
+        end
+;;
+
+let start_auto_random nbColumn nbLine tailleEcran =
+    let tailleCellule = tailleEcran/nbColumn in
+    let voisin = Voisinage [(-1,-1); (-1,0); (-1,1); (0,-1); (0,1); (1,-1); (1, 0); (1, 1)] in
+    let auto = Automate(voisin , create_automate nbColumn nbLine) in
+
+    let etat_initiale = get_etat_initiale_random nbColumn nbLine 0 0 in
+
+    let auto = auto_etat_initiale auto etat_initiale in
+    Graphics.set_window_title ("Press any key to go to next state and E to exit");
+    clear_graph();
+    auto_to_graph auto tailleCellule;
+
+    (* on boucle à l'infini avec cette appel *)
+    boucle_auto_state auto tailleCellule nbColumn nbLine ;
+;;
 (* ------------------ Fonction gérant le démarage de l'automate ------------------ *)
 
 (* Fonction servant a initialiser toute la partie graphique du projet *)
@@ -313,6 +341,11 @@ let init_graph nbColumn nbLine tailleEcran =
 
     Graphics.moveto 150 900;
     Graphics.draw_string ("press B for a normal grid !");
+
+    Graphics.moveto 150 700;
+    Graphics.draw_string ("press any key");
+    Graphics.moveto 150 600;
+    Graphics.draw_string ("for a random grid !");
 ;;
 
 let start_graph =
@@ -326,7 +359,7 @@ let start_graph =
     begin match choice with
     | 'a' -> start_auto_glider_gun nbColumn nbLine tailleEcran
     | 'b' -> start_auto_basique nbColumn nbLine tailleEcran
-    | _ -> start_auto_basique nbColumn nbLine tailleEcran
+    | _ -> start_auto_random nbColumn nbLine tailleEcran
     end
 ;;
 
