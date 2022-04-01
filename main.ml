@@ -8,7 +8,8 @@ pour lancer : ocamlfind ocamlc main.ml -o main -linkpkg -package graphics
 puis ./main
 *)
 open Graphics;; (* pour l'affichage graphique *)
-Random.self_init();;
+Random.self_init();; (* pour le random de l'état initial de l'automate random *)
+
 (* ------------------ Les types de bases pour notre automate ------------------ *)
 type state = Alive | Dead;;
 
@@ -20,6 +21,7 @@ type automate = Automate of voisinage * (cellule list);;
 
 
 (* ------------------ Fonctions permettant la création d'un automate avec toutes ces cellules mortes ------------------ *)
+
 (* Cette fonction crée une liste de cellulue de même coordonées y *)
 let rec create_column_auto i m = 
     if i = 0
@@ -252,7 +254,7 @@ let rec boucle_auto_state auto tailleCellule nbColumn nbLine =
 
 (* ------------------ Fonctions implémentant différents états initiaux du jeu de la vie ------------------ *)
 
-(* fonction qui lance un automate avec un glider gun présent *)
+(* Fonction qui lance un automate avec un glider gun présent *)
 let start_auto_glider_gun nbColumn nbLine tailleEcran =
     let tailleCellule = tailleEcran/nbColumn in
     let voisin = Voisinage [(-1,-1); (-1,0); (-1,1); (0,-1); (0,1); (1,-1); (1, 0); (1, 1)] in
@@ -274,7 +276,7 @@ let start_auto_glider_gun nbColumn nbLine tailleEcran =
     boucle_auto_state auto tailleCellule nbColumn nbLine ;
 ;;
 
-(* fonction qui lance un automate qui as quelques structures *)
+(* Fonction qui lance un automate qui as quelques structures *)
 let start_auto_basique nbColumn nbLine tailleEcran =
     let tailleCellule = tailleEcran/nbColumn in
     let voisin = Voisinage [(-1,-1); (-1,0); (-1,1); (0,-1); (0,1); (1,-1); (1, 0); (1, 1)] in
@@ -294,6 +296,7 @@ let start_auto_basique nbColumn nbLine tailleEcran =
     boucle_auto_state auto tailleCellule nbColumn nbLine ;
 ;;
 
+(* Fonction récupérant une liste de coordonéees avec 1/2 d'avoir la coordonnées  *)
 let rec get_etat_initiale_random n m i j = 
     if i = n && j = m then
         begin
@@ -311,6 +314,7 @@ let rec get_etat_initiale_random n m i j =
         end
 ;;
 
+(* Fonction qui lance un automate avec un état intiale random (1/2) *)
 let start_auto_random nbColumn nbLine tailleEcran =
     let tailleCellule = tailleEcran/nbColumn in
     let voisin = Voisinage [(-1,-1); (-1,0); (-1,1); (0,-1); (0,1); (1,-1); (1, 0); (1, 1)] in
@@ -336,25 +340,27 @@ let init_graph nbColumn nbLine tailleEcran =
     Graphics.set_font "-*-fixed-medium-r-semicondensed--100-*-*-*-*-*-iso8859-1";
     Graphics.draw_string ("GAME OF LIFE");
 
-    Graphics.moveto 150 1100;
+    Graphics.moveto 100 1100;
     Graphics.draw_string ("press A for glider gun !");
 
-    Graphics.moveto 150 900;
+    Graphics.moveto 100 900;
     Graphics.draw_string ("press B for a normal grid !");
 
-    Graphics.moveto 150 700;
+    Graphics.moveto 100 700;
     Graphics.draw_string ("press any key");
-    Graphics.moveto 150 600;
+    Graphics.moveto 100 600;
     Graphics.draw_string ("for a random grid !");
+    Graphics.moveto 100 500;
+    Graphics.draw_string ("(may be slow to change state)");
 ;;
 
+(* Fonction lancçant le projet, on initialise les varibales *)
 let start_graph =
     let nbColumn = 51 in
     let nbLine = 51 in
     let tailleEcran = 1500 in
     init_graph nbColumn nbLine tailleEcran;
     
-
     let choice = Graphics.read_key () in 
     begin match choice with
     | 'a' -> start_auto_glider_gun nbColumn nbLine tailleEcran
