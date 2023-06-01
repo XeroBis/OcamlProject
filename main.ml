@@ -1,6 +1,4 @@
 (* 
-BIGNON Alan 685L E197700R
-Tasyurek Ekin 685K Erasmus
 
 Projet Prgrammation Fonctionnelle 
 Sujet 2 : Automate Cellulaire
