@@ -1,10 +1,9 @@
 (* 
-
-Projet Prgrammation Fonctionnelle 
-Sujet 2 : Automate Cellulaire
-pour lancer : ocamlfind ocamlc main.ml -o main -linkpkg -package graphics
-puis ./main
+    Projet OCaml - Game of life
+    Auteur : 
+    - BIGNON Alan
 *)
+
 open Graphics;; (* pour l'affichage graphique *)
 Random.self_init();; (* pour le random de l'état initial de l'automate random *)
 
